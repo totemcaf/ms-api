@@ -14,20 +14,20 @@ import scala.util.Random
  */
 case class Board(
                   rows: Size, cols: Size, mines: Set[Board.Position] = Set.empty,
-                  marks: Map[Board.Position, SquareView] = Map.empty
+                  flags: Map[Board.Position, SquareView] = Map.empty
                 ) {
 
-  def markAt(row: SquareCoordinate, col: SquareCoordinate): Board = markAt((row, col))
+  def markAt(row: SquareCoordinate, col: SquareCoordinate): Board = flagAt((row, col))
 
-  private def markAt(position: Position) = {
-    marks.get(position) match {
-      case Some(Marked) => copy(marks = marks - position)
-      case None => copy(marks = marks + (position -> Marked))
+  private def flagAt(position: Position) = {
+    flags.get(position) match {
+      case Some(Flagged) => copy(flags = flags - position)
+      case None => copy(flags = flags + (position -> Flagged))
       case _ => this // Missing error handling
     }
   }
 
-  def mineAt(r: SquareCoordinate, c: SquareCoordinate): Boolean = mines contains (r,c)
+  def isMineAt(r: SquareCoordinate, c: SquareCoordinate): Boolean = mines contains (r,c)
 
   /**
    * Returns the cell at coordinates if coordinates are in range, or None if outside board size
@@ -40,7 +40,7 @@ case class Board(
    * Internal access to a cell, coordinates are not checked
    */
   private def unsafeSquare(row: SquareCoordinate, col: SquareCoordinate): SquareView =
-    marks.getOrElse((row, col), Hidden)
+    flags.getOrElse((row, col), Covered)
 
   /**
    * Returns all the cells in the board
@@ -96,7 +96,10 @@ object Board {
     def asSquareCoordinates: Seq[SquareCoordinate] = range.map(SquareCoordinate.unsafeFrom)
   }
 
-  sealed abstract class SquareView
-  object Hidden extends SquareView
-  object Marked extends SquareView
+  sealed abstract class SquareView {
+    override def toString: String = getClass.getSimpleName
+  }
+
+  object Covered extends SquareView
+  object Flagged extends SquareView
 }

@@ -3,7 +3,7 @@ package carlosfau.minesweeper.business.action
 import carlosfau.minesweeper.business.model.Board
 import carlosfau.minesweeper.business.model.Board.SquareCoordinate
 
-class MarkSquare(boardRepository: BoardRepository) {
+class FlagSquare(boardRepository: BoardRepository) {
 
   def apply(row: SquareCoordinate, col: SquareCoordinate): Option[Board] =
     boardRepository
@@ -12,6 +12,6 @@ class MarkSquare(boardRepository: BoardRepository) {
       .map{ boardRepository.save }
 }
 
-object MarkSquare {
-  def apply(boardRepository: BoardRepository): MarkSquare = new MarkSquare(boardRepository)
+object FlagSquare {
+  def apply(boardRepository: BoardRepository): FlagSquare = new FlagSquare(boardRepository)
 }

@@ -2,7 +2,7 @@ package carlosfau.minesweeper.business.action
 
 import carlosfau.minesweeper.business.model.Board
 import carlosfau.minesweeper.business.model.Board.SquareCoordinate
-import carlosfau.minesweeper.business.model.Board.Hidden
+import carlosfau.minesweeper.business.model.Board.Covered
 import eu.timepit.refined._
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.auto._
@@ -36,19 +36,19 @@ class CreateBoardTest extends AnyFunSuite {
   test("New board squares are all hidden") {
     val board = createBoard(rows, cols)
 
-    assert(board.squares.forall(_ == Hidden))
+    assert(board.squares.forall(_ == Covered))
   }
 
   test("A new board has 0 mines") {
     val board = createBoard(rows, cols)
 
-    assert( board.map( (r, c) => board.mineAt(r,c)).forall(!_))
+    assert( board.map( (r, c) => board.isMineAt(r,c)).forall(!_))
   }
 
   test("Adding mines to board, then it have the quantity added") {
     val board = createBoard(rows, cols).addMines(3)
 
-    val function: (SquareCoordinate, SquareCoordinate) => Boolean = (r, c) => board.mineAt(r, c)
+    val function: (SquareCoordinate, SquareCoordinate) => Boolean = (r, c) => board.isMineAt(r, c)
     val numberOfMines: Int = board.map(function).count(x => x)
     assert( 3 == numberOfMines )
   }
