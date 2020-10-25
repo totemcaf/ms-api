@@ -14,11 +14,13 @@ The game fill follow rules described for [Minesweeper](https://en.wikipedia.org/
 Features:
 
 * [X] Create empty board of size n * m
-* [ ] Add mines to board
-* [ ] When adding mines to board, omit the square requested (first square revealed protection)
-* [ ] Let show board status (Hidden, Marked cell, Empty cell, 1 to 8 adjacent mines, Exploded mine, Shown mine) 
-* [ ] Let mark cell
+* [X] Add mines to board
+* [X] Let mark cell
 * [ ] Let unmark cell
+* [ ] Let show square 
+* [ ] Explode if try to show square with mine
+* [ ] Let show board status (Hidden, Marked cell, Empty cell, 1 to 8 adjacent mines, Exploded mine, Shown mine)
+* [ ] When adding mines to board, omit the square requested (first square revealed protection)
 
 
 # References

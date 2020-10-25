@@ -20,11 +20,11 @@ import eu.timepit.refined.string._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.funsuite.AnyFunSuite
 
-class CreateBoardTest extends AnyFunSuite with BeforeAndAfterEach {
+class CreateBoardTest extends AnyFunSuite {
   val rows: Board.Size = 3
   val cols: Board.Size = 2
 
-  val createBoard = CreateBoard()
+  private val createBoard = CreateBoard(new BoardRepositoryStub)
 
   test("New board has required rows and column squares") {
     val board = createBoard(rows, cols)

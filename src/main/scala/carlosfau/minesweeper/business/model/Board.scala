@@ -4,6 +4,7 @@ import carlosfau.minesweeper.business.model.Board._
 import eu.timepit.refined.api.RefinedTypeOps
 import eu.timepit.refined.auto._
 
+import scala.annotation.tailrec
 import scala.util.Random
 
 /**
@@ -11,7 +12,20 @@ import scala.util.Random
  * @param rows number of rows in th board
  * @param cols number of columns in the board
  */
-case class Board(rows: Size, cols: Size, mines: Set[Board.Position] = Set.empty) {
+case class Board(
+                  rows: Size, cols: Size, mines: Set[Board.Position] = Set.empty,
+                  marks: Map[Board.Position, SquareView] = Map.empty
+                ) {
+
+  def markAt(row: SquareCoordinate, col: SquareCoordinate): Board = markAt((row, col))
+
+  private def markAt(position: Position) = {
+    marks.get(position) match {
+      case Some(Marked) => copy(marks = marks - position)
+      case None => copy(marks = marks + (position -> Marked))
+      case _ => this // Missing error handling
+    }
+  }
 
   def mineAt(r: SquareCoordinate, c: SquareCoordinate): Boolean = mines contains (r,c)
 
@@ -25,7 +39,8 @@ case class Board(rows: Size, cols: Size, mines: Set[Board.Position] = Set.empty)
   /**
    * Internal access to a cell, coordinates are not checked
    */
-  private def unsafeSquare(row: SquareCoordinate, col: SquareCoordinate) = Hidden
+  private def unsafeSquare(row: SquareCoordinate, col: SquareCoordinate): SquareView =
+    marks.getOrElse((row, col), Hidden)
 
   /**
    * Returns all the cells in the board
@@ -33,6 +48,7 @@ case class Board(rows: Size, cols: Size, mines: Set[Board.Position] = Set.empty)
    */
   def squares: Seq[SquareView] = map(unsafeSquare)
 
+  @tailrec
   private def generateRandomUnusedPosition(mines: Set[Position]): Position = {
     val position: Position = (
       SquareCoordinate.unsafeFrom(Random.nextInt(rows)), SquareCoordinate.unsafeFrom(Random.nextInt(cols))
@@ -47,7 +63,7 @@ case class Board(rows: Size, cols: Size, mines: Set[Board.Position] = Set.empty)
    * @return a new board
    */
   def addMines(numberOfMinesToAdd: Quantity): Board = copy(
-    mines = (1 to numberOfMinesToAdd).foldLeft(mines){ (ms, _) => ms + generateRandomUnusedPosition(mines) }
+    mines = (1 to numberOfMinesToAdd).foldLeft(mines){ (ms, _) => ms + generateRandomUnusedPosition(ms) }
   )
 
   /**
@@ -82,4 +98,5 @@ object Board {
 
   sealed abstract class SquareView
   object Hidden extends SquareView
+  object Marked extends SquareView
 }
