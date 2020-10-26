@@ -19,6 +19,7 @@ Features:
 * [x] Let unflag square
 * [x] Let uncover square 
 * [x] Explode if try to show square with a mine
+* [x] Let flag with Question mark or Red flag
 * [ ] Let show board status (Hidden, Marked cell, Empty cell, 1 to 8 adjacent mines, Exploded mine, Shown mine)
 * [ ] When adding mines to board, omit the square requested (first square revealed protection)
 

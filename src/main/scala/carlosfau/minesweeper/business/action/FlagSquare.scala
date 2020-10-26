@@ -1,13 +1,13 @@
 package carlosfau.minesweeper.business.action
 
 import carlosfau.minesweeper.business.model.{Board, Result}
-import carlosfau.minesweeper.business.model.Board.SquareCoordinate
+import carlosfau.minesweeper.business.model.Board.{Flagged, RedFlagged, SquareCoordinate}
 
 class FlagSquare(boardRepository: BoardRepository) {
-  def apply(row: SquareCoordinate, col: SquareCoordinate): Result[Board] =
+  def apply(row: SquareCoordinate, col: SquareCoordinate, flagType: Flagged = RedFlagged): Result[Board] =
     boardRepository
       .findBoard()
-      .flatMap2(_.flagAt(row, col))
+      .flatMap2(_.flagAt(row, col, flagType))
       .map2{ boardRepository.save }
 }
 

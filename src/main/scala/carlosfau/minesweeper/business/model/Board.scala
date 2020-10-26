@@ -23,18 +23,23 @@ class Board private (
     copy(mines = mines + (row at col))
 
 
-  def flagAt(row: SquareCoordinate, col: SquareCoordinate): Result[Board] = flagAt(row at col)
+  def flagAt(row: SquareCoordinate, col: SquareCoordinate, flagType: Flagged): Result[Board] =
+    flagAt(row at col, flagType)
+
+  private def flagAt(position: Position, flagType: Flagged): Result[Board] = {
+    cells.get(position) match {
+      case Some(Uncovered(_)) => CannotFlagUncoveredSquare(position)
+      case Some(`flagType`) => copy(cells = cells - position).asResult
+      case _ => uncheckedFlatAt(position, flagType)
+    }
+  }
+
+  private def uncheckedFlatAt(position: Position, flagType: Flagged) = {
+    copy(cells = cells + (position -> flagType)).asResult
+  }
 
   private def copy(cells: Map[Position, SquareView] = cells, mines: Set[Board.Position] = mines) =
     new Board(rows, cols, mines, cells)
-
-  private def flagAt(position: Position): Result[Board] = {
-    cells.get(position) match {
-      case Some(Flagged) => copy(cells = cells - position).asResult
-      case None => copy(cells = cells + (position -> Flagged)).asResult
-      case Some(Uncovered(_)) => CannotFlagUncoveredSquare(position)
-    }
-  }
 
   def uncover(row: SquareCoordinate, col: SquareCoordinate): Result[Board] = uncover(row at col)
 
@@ -51,8 +56,7 @@ class Board private (
     else {
       cells.get(position) match {
         case Some(Uncovered(_)) => CannotUncoverUncoveredSquare(position)
-        case None => uncheckedUncover(position)
-        case Some(Flagged) => uncheckedUncover(position)
+        case _ => uncheckedUncover(position)
       }
     }
 
@@ -142,7 +146,11 @@ object Board {
   }
 
   object Covered extends SquareView
-  object Flagged extends SquareView
+  abstract class Flagged extends SquareView
+
+  object RedFlagged extends Flagged
+  object QuestionMarked extends Flagged
+
   case class Uncovered(adjacentMines: Quantity) extends SquareView {
 
     override def toString: String = s"${getClass.getSimpleName}($adjacentMines)"
