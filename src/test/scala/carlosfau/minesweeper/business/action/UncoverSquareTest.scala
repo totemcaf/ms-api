@@ -2,6 +2,7 @@ package carlosfau.minesweeper.business.action
 
 import carlosfau.minesweeper.business.model.{BlewMineUp, Board, CannotUncoverUncoveredSquare}
 import carlosfau.minesweeper.business.model.Board.{Position, Uncovered}
+import carlosfau.minesweeper.infrastructure.repository.InMemoryBoardRepository
 import org.scalatest.funsuite.AnyFunSuite
 import eu.timepit.refined.auto._
 
@@ -9,7 +10,7 @@ class UncoverSquareTest extends AnyFunSuite {
   val rows: Board.Size = 3
   val cols: Board.Size = 3
 
-  val boardRepository = new BoardRepositoryStub()
+  val boardRepository = new InMemoryBoardRepository()
 
   private val uncoverSquare = UncoverSquare(boardRepository)
 

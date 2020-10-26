@@ -2,6 +2,7 @@ package carlosfau.minesweeper.business.action
 
 import carlosfau.minesweeper.business.model.Board.{Covered, Flagged, Position, QuestionMarked, RedFlagged}
 import carlosfau.minesweeper.business.model.{Board, CannotFlagUncoveredSquare}
+import carlosfau.minesweeper.infrastructure.repository.InMemoryBoardRepository
 import eu.timepit.refined.auto._
 import org.scalatest.funsuite.AnyFunSuite
 
@@ -9,7 +10,7 @@ class FlagSquareTest extends AnyFunSuite  {
   val rows: Board.Size = 3
   val cols: Board.Size = 2
 
-  val boardRepository = new BoardRepositoryStub()
+  val boardRepository = new InMemoryBoardRepository()
 
   private val flagSquare = FlagSquare(boardRepository)
 

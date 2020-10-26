@@ -3,6 +3,7 @@ package carlosfau.minesweeper.business.action
 import carlosfau.minesweeper.business.model.Board
 import carlosfau.minesweeper.business.model.Board.SquareCoordinate
 import carlosfau.minesweeper.business.model.Board.Covered
+import carlosfau.minesweeper.infrastructure.repository.InMemoryBoardRepository
 import eu.timepit.refined._
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.auto._
@@ -24,7 +25,7 @@ class CreateBoardTest extends AnyFunSuite {
   val rows: Board.Size = 3
   val cols: Board.Size = 2
 
-  private val createBoard = CreateBoard(new BoardRepositoryStub)
+  private val createBoard = CreateBoard(new InMemoryBoardRepository)
 
   test("New board has required rows and column squares") {
     val board = createBoard(rows, cols)

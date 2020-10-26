@@ -142,7 +142,8 @@ object Board {
   }
 
   sealed abstract class SquareView {
-    override def toString: String = getClass.getSimpleName
+    val name: String = getClass.getSimpleName.stripSuffix("$")
+    override def toString: String = name
   }
 
   object Covered extends SquareView
@@ -153,6 +154,6 @@ object Board {
 
   case class Uncovered(adjacentMines: Quantity) extends SquareView {
 
-    override def toString: String = s"${getClass.getSimpleName}($adjacentMines)"
+    override def toString: String = s"$name($adjacentMines)"
   }
 }
