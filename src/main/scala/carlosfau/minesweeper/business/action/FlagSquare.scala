@@ -7,7 +7,7 @@ class FlagSquare(boardRepository: BoardRepository) {
   def apply(row: SquareCoordinate, col: SquareCoordinate): Result[Board] =
     boardRepository
       .findBoard()
-      .map2(_.flagAt(row, col))
+      .flatMap2(_.flagAt(row, col))
       .map2{ boardRepository.save }
 }
 

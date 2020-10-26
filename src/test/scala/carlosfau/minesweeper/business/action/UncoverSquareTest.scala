@@ -1,7 +1,7 @@
 package carlosfau.minesweeper.business.action
 
-import carlosfau.minesweeper.business.model.{BlewMineUp, Board}
-import carlosfau.minesweeper.business.model.Board.Uncovered
+import carlosfau.minesweeper.business.model.{BlewMineUp, Board, CannotUncoverUncoveredSquare}
+import carlosfau.minesweeper.business.model.Board.{Position, Uncovered}
 import org.scalatest.funsuite.AnyFunSuite
 import eu.timepit.refined.auto._
 
@@ -65,5 +65,14 @@ class UncoverSquareTest extends AnyFunSuite {
     val result = uncoverSquare(2, 2).swap.getOrElse(fail("Expecting a left"))
 
     assert(result == BlewMineUp)
+  }
+
+
+  test("Flagging an uncovered square generates an error") {
+    boardRepository.save(Board(rows, cols).uncover(2, 3).get)
+
+    val result = uncoverSquare(2, 3).swap.getOrElse(fail("Expecting exception"))
+
+    assert(result == CannotUncoverUncoveredSquare(Position(2, 3)))
   }
 }

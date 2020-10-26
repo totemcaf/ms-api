@@ -23,16 +23,16 @@ class Board private (
     copy(mines = mines + (row at col))
 
 
-  def flagAt(row: SquareCoordinate, col: SquareCoordinate): Board = flagAt(row at col)
+  def flagAt(row: SquareCoordinate, col: SquareCoordinate): Result[Board] = flagAt(row at col)
 
   private def copy(cells: Map[Position, SquareView] = cells, mines: Set[Board.Position] = mines) =
     new Board(rows, cols, mines, cells)
 
-  private def flagAt(position: Position) = {
+  private def flagAt(position: Position): Result[Board] = {
     cells.get(position) match {
-      case Some(Flagged) => copy(cells = cells - position)
-      case None => copy(cells = cells + (position -> Flagged))
-      case _ => this // Missing error handling
+      case Some(Flagged) => copy(cells = cells - position).asResult
+      case None => copy(cells = cells + (position -> Flagged)).asResult
+      case Some(Uncovered(_)) => CannotFlagUncoveredSquare(position)
     }
   }
 
@@ -50,13 +50,14 @@ class Board private (
     if (mines contains position) BlewMineUp
     else {
       cells.get(position) match {
-        case Some(Uncovered(_)) => Right(Some(this)) // TODO Handle
-        case None => Right(Some(
-          copy(cells = cells + (position -> Uncovered(adjacentMineCount(position))))
-        ))
-        case _ => Right(Some(this)) // TODO Missing error handling
+        case Some(Uncovered(_)) => CannotUncoverUncoveredSquare(position)
+        case None => uncheckedUncover(position)
+        case Some(Flagged) => uncheckedUncover(position)
       }
     }
+
+  private def uncheckedUncover(position: Position) =
+    copy(cells = cells + (position -> Uncovered(adjacentMineCount(position)))).asResult
 
   def isMineAt(r: SquareCoordinate, c: SquareCoordinate): Boolean = mines contains (r at c)
 
@@ -122,6 +123,7 @@ object Board {
   val One: SquareCoordinate = 1
 
   case class Position(row: SquareCoordinate, col: SquareCoordinate)
+
   object Position {
     def apply(row: Int, col: Int): Position =
       Position(SquareCoordinate.unsafeFrom(row), SquareCoordinate.unsafeFrom(col))

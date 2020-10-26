@@ -17,14 +17,25 @@ package object model {
 
   implicit def error2result[T](error: GameError): Result[T] = Left(error)
 
+  implicit class Any2Result[T](value: T){
+    val asResult: Result[T] = Right(Some(value))
+  }
+
   sealed abstract class GameError() {
     val msg: String
-
 
     override def toString = s"${getClass.getSimpleName}($msg)"
   }
 
   case class InvalidAction(msg: String) extends GameError
+  case class CannotFlagUncoveredSquare(position: Position) extends GameError {
+    val msg = s"Cannot flag uncovered square at $position"
+  }
+
+  case class CannotUncoverUncoveredSquare(position: Position) extends GameError {
+    val msg = s"Cannot uncover already uncovered square at $position"
+  }
+
   object BlewMineUp extends GameError {
     val msg = "Game over, you uncover a mine"
   }

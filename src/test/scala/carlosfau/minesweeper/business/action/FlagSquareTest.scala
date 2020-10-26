@@ -1,7 +1,7 @@
 package carlosfau.minesweeper.business.action
 
-import carlosfau.minesweeper.business.model.Board
-import carlosfau.minesweeper.business.model.Board.{Covered, Flagged}
+import carlosfau.minesweeper.business.model.{Board, CannotFlagUncoveredSquare}
+import carlosfau.minesweeper.business.model.Board.{Covered, Flagged, Position}
 import eu.timepit.refined.auto._
 import org.scalatest.funsuite.AnyFunSuite
 
@@ -11,7 +11,6 @@ class FlagSquareTest extends AnyFunSuite  {
 
   val boardRepository = new BoardRepositoryStub()
 
-  private val createBoard = CreateBoard(boardRepository)
   private val flagSquare = FlagSquare(boardRepository)
 
   implicit class BoardOps(board: Board) {
@@ -25,7 +24,7 @@ class FlagSquareTest extends AnyFunSuite  {
 
 
   test("Flagging a square it is flagged and it is the only flagged") {
-    createBoard(rows, cols)
+    boardRepository.save(Board(rows, cols))
 
     val board = flagSquare(1, 1).get
 
@@ -35,7 +34,7 @@ class FlagSquareTest extends AnyFunSuite  {
   }
 
   test("Flagging a flagged board (different square) it is flagged and rest keeps as original") {
-    createBoard(rows, cols)
+    boardRepository.save(Board(rows, cols))
 
     flagSquare(2, 2)
 
@@ -48,7 +47,7 @@ class FlagSquareTest extends AnyFunSuite  {
   }
 
   test("Flagging a flagged square, unflagged it") {
-    createBoard(rows, cols)
+    boardRepository.save(Board(rows, cols))
 
     flagSquare(2, 1)
 
@@ -59,5 +58,11 @@ class FlagSquareTest extends AnyFunSuite  {
     assert( 0 == board.flagCount )
   }
 
-  // Flagging an uncovered square generates an error
+  test("Flagging an uncovered square generates an error") {
+    boardRepository.save(Board(rows, cols).uncover(2, 3).get)
+
+    val result = flagSquare(2, 3).swap.getOrElse(fail("Expecting exception"))
+
+    assert(result == CannotFlagUncoveredSquare(Position(2, 3)))
+  }
 }
