@@ -12,35 +12,66 @@ import scala.util.Random
  * @param rows number of rows in th board
  * @param cols number of columns in the board
  */
-case class Board(
-                  rows: Size, cols: Size, mines: Set[Board.Position] = Set.empty,
-                  flags: Map[Board.Position, SquareView] = Map.empty
-                ) {
+class Board private (
+             val rows: Size, val cols: Size,
+             mines: Set[Board.Position],
+             cells: Map[Board.Position, SquareView]
+           ) {
 
-  def markAt(row: SquareCoordinate, col: SquareCoordinate): Board = flagAt((row, col))
+  // Public for testing
+  def withMineAt(row: SquareCoordinate, col: SquareCoordinate): Board =
+    copy(mines = mines + (row at col))
+
+
+  def flagAt(row: SquareCoordinate, col: SquareCoordinate): Board = flagAt(row at col)
+
+  private def copy(cells: Map[Position, SquareView] = cells, mines: Set[Board.Position] = mines) =
+    new Board(rows, cols, mines, cells)
 
   private def flagAt(position: Position) = {
-    flags.get(position) match {
-      case Some(Flagged) => copy(flags = flags - position)
-      case None => copy(flags = flags + (position -> Flagged))
+    cells.get(position) match {
+      case Some(Flagged) => copy(cells = cells - position)
+      case None => copy(cells = cells + (position -> Flagged))
       case _ => this // Missing error handling
     }
   }
 
-  def isMineAt(r: SquareCoordinate, c: SquareCoordinate): Boolean = mines contains (r,c)
+  def uncover(row: SquareCoordinate, col: SquareCoordinate): Result[Board] = uncover(row at col)
+
+  private def range(value: SquareCoordinate, limit: Size) = Range(if (value == One) One else value - 1, Math.min(value + 1, limit)).inclusive
+
+  def adjacentMineCount(position: Position): Quantity = Quantity.unsafeFrom((for {
+    row <- range(position.row, rows)
+    col <- range(position.col, cols)
+    if mines contains Position(row, col)
+  } yield ()).size)
+
+  private def uncover(position: Position): Result[Board] =
+    if (mines contains position) BlewMineUp
+    else {
+      cells.get(position) match {
+        case Some(Uncovered(_)) => Right(Some(this)) // TODO Handle
+        case None => Right(Some(
+          copy(cells = cells + (position -> Uncovered(adjacentMineCount(position))))
+        ))
+        case _ => Right(Some(this)) // TODO Missing error handling
+      }
+    }
+
+  def isMineAt(r: SquareCoordinate, c: SquareCoordinate): Boolean = mines contains (r at c)
 
   /**
    * Returns the cell at coordinates if coordinates are in range, or None if outside board size
    */
   def square(row: SquareCoordinate, col: SquareCoordinate): Option[SquareView] =
-    if (row < rows && col < cols) Some(unsafeSquare(row, col))
+    if (row <= rows && col <= cols) Some(unsafeSquare(row, col))
     else None
 
   /**
    * Internal access to a cell, coordinates are not checked
    */
   private def unsafeSquare(row: SquareCoordinate, col: SquareCoordinate): SquareView =
-    flags.getOrElse((row, col), Covered)
+    cells.getOrElse(row at col, Covered)
 
   /**
    * Returns all the cells in the board
@@ -50,8 +81,8 @@ case class Board(
 
   @tailrec
   private def generateRandomUnusedPosition(mines: Set[Position]): Position = {
-    val position: Position = (
-      SquareCoordinate.unsafeFrom(Random.nextInt(rows)), SquareCoordinate.unsafeFrom(Random.nextInt(cols))
+    val position = Position(
+      SquareCoordinate.unsafeFrom(Random.nextInt(rows) + 1), SquareCoordinate.unsafeFrom(Random.nextInt(cols) + 1)
     )
 
     if (mines contains position) generateRandomUnusedPosition(mines) else position
@@ -68,25 +99,33 @@ case class Board(
 
   /**
    * Visit all squares and apply the provided function to each position
-   * @param function  the function to apply on each square
+   * @param function the function to apply on each square
    * @tparam T  type of the result
    * @return a sequence of the results of applying the function to the squares
    */
   def map[T](function: (SquareCoordinate, SquareCoordinate) => T): Seq[T] = for {
-    row <- (0 until rows).asSquareCoordinates
-    col <- (0 until cols).asSquareCoordinates
+    row <- (1 to rows).asSquareCoordinates
+    col <- (1 to cols).asSquareCoordinates
   } yield function(row, col)
 }
 
 object Board {
+  def apply(rows: Size, cols: Size) = new Board(rows, cols, Set.empty, Map.empty)
+
   import eu.timepit.refined.api.Refined
   import eu.timepit.refined.numeric._
 
-  type SquareCoordinate = Int Refined NonNegative
+  type SquareCoordinate = Int Refined Positive
   type Size = Int Refined Positive
   type Quantity = Int Refined NonNegative
 
-  type Position = (SquareCoordinate, SquareCoordinate)
+  val One: SquareCoordinate = 1
+
+  case class Position(row: SquareCoordinate, col: SquareCoordinate)
+  object Position {
+    def apply(row: Int, col: Int): Position =
+      Position(SquareCoordinate.unsafeFrom(row), SquareCoordinate.unsafeFrom(col))
+  }
 
   object Size extends RefinedTypeOps[Size, Int]
   object SquareCoordinate extends RefinedTypeOps[SquareCoordinate, Int]
@@ -102,4 +141,8 @@ object Board {
 
   object Covered extends SquareView
   object Flagged extends SquareView
+  case class Uncovered(adjacentMines: Quantity) extends SquareView {
+
+    override def toString: String = s"${getClass.getSimpleName}($adjacentMines)"
+  }
 }

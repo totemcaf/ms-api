@@ -1,6 +1,6 @@
 package carlosfau.minesweeper.business.action
 
-import carlosfau.minesweeper.business.model.Board
+import carlosfau.minesweeper.business.model.{Board, Result}
 
 class BoardRepositoryStub extends BoardRepository {
   var board: Option[Board] = None
@@ -10,5 +10,5 @@ class BoardRepositoryStub extends BoardRepository {
     board
   }
 
-  override def findBoard(): Option[Board] = board
+  override def findBoard(): Result[Board] = Right(board)
 }

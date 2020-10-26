@@ -1,15 +1,14 @@
 package carlosfau.minesweeper.business.action
 
-import carlosfau.minesweeper.business.model.Board
+import carlosfau.minesweeper.business.model.{Board, Result}
 import carlosfau.minesweeper.business.model.Board.SquareCoordinate
 
 class FlagSquare(boardRepository: BoardRepository) {
-
-  def apply(row: SquareCoordinate, col: SquareCoordinate): Option[Board] =
+  def apply(row: SquareCoordinate, col: SquareCoordinate): Result[Board] =
     boardRepository
       .findBoard()
-      .map(_.markAt(row, col))
-      .map{ boardRepository.save }
+      .map2(_.flagAt(row, col))
+      .map2{ boardRepository.save }
 }
 
 object FlagSquare {
