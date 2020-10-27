@@ -10,8 +10,8 @@ import eu.timepit.refined.auto._
 class CreateBoard(boardRepository: BoardRepository) {
   def apply(rows: Board.Size, cols: Board.Size, mines: Board.Quantity = 0): Result[Board] = {
     val board = Board(rows, cols)
-    val b = if (mines.value == 0) board else board.addMines(mines)
-    boardRepository.save(b)
+    val b = if (mines.value == 0) board.asResult else board.addMines(mines)
+    b.flatMap2(boardRepository.save)
   }
 }
 

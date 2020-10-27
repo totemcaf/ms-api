@@ -1,31 +1,17 @@
 package carlosfau.minesweeper.business.action
 
-import carlosfau.minesweeper.business.model.Board
-import carlosfau.minesweeper.business.model.Board.SquareCoordinate
-import carlosfau.minesweeper.business.model.Board.Covered
+import carlosfau.minesweeper.business.model.Board.{Covered, SquareCoordinate}
+import carlosfau.minesweeper.business.model.{Board, GameAlreadyStarted}
 import carlosfau.minesweeper.infrastructure.repository.InMemoryBoardRepository
-import eu.timepit.refined._
-import eu.timepit.refined.api.Refined
 import eu.timepit.refined.auto._
-import eu.timepit.refined.numeric._
-import eu.timepit.refined._
-import eu.timepit.refined.api.Refined
-import eu.timepit.refined.auto._
-import eu.timepit.refined.numeric._
-import eu.timepit.refined.api.RefType
-import eu.timepit.refined.boolean._
-import eu.timepit.refined.char._
-import eu.timepit.refined.collection._
-import eu.timepit.refined.generic._
-import eu.timepit.refined.string._
-import org.scalatest.BeforeAndAfterEach
 import org.scalatest.funsuite.AnyFunSuite
 
 class CreateBoardTest extends AnyFunSuite {
   val rows: Board.Size = 3
   val cols: Board.Size = 2
 
-  private val createBoard = CreateBoard(new InMemoryBoardRepository)
+  private val boardRepository = new InMemoryBoardRepository
+  private val createBoard = CreateBoard(boardRepository)
 
   test("New board has required rows and column squares") {
     val board = createBoard(rows, cols).get
@@ -47,10 +33,19 @@ class CreateBoardTest extends AnyFunSuite {
   }
 
   test("Adding mines to board, then it have the quantity added") {
-    val board = createBoard(rows, cols).get.addMines(3)
+    val board = createBoard(rows, cols).get.addMines(3).get
 
     val function: (SquareCoordinate, SquareCoordinate) => Boolean = (r, c) => board.isMineAt(r, c)
     val numberOfMines: Int = board.map(function).count(x => x)
     assert( 3 == numberOfMines )
+  }
+
+  test("Cannot add mines to an already started game") {
+    createBoard(rows, cols)
+    val board = FlagSquare(boardRepository)(1, 1).get
+
+    val result = board.addMines(1).left.get
+
+    assert( result.isInstanceOf[GameAlreadyStarted] )
   }
 }

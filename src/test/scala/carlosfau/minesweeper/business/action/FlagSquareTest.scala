@@ -1,7 +1,7 @@
 package carlosfau.minesweeper.business.action
 
 import carlosfau.minesweeper.business.model.Board.{Covered, Flagged, Position, QuestionMarked, RedFlagged}
-import carlosfau.minesweeper.business.model.{Board, CannotFlagUncoveredSquare, EndedGame}
+import carlosfau.minesweeper.business.model.{Board, CannotFlagUncoveredSquare, EndedGame, InvalidCoordinates}
 import carlosfau.minesweeper.infrastructure.repository.InMemoryBoardRepository
 import eu.timepit.refined.auto._
 import org.scalatest.funsuite.AnyFunSuite
@@ -61,11 +61,11 @@ class FlagSquareTest extends AnyFunSuite  {
   }
 
   test("Flagging an uncovered square generates an error") {
-    boardRepository.save(Board(rows, cols).uncover(2, 3).get)
+    boardRepository.save(Board(rows, cols).uncover(3, 2).get)
 
-    val result = flagSquare(2, 3).swap.getOrElse(fail("Expecting exception"))
+    val result = flagSquare(3, 2).swap.getOrElse(fail("Expecting exception"))
 
-    assert(result == CannotFlagUncoveredSquare(Position(2, 3)))
+    assert(result == CannotFlagUncoveredSquare(Position(3, 2)))
   }
 
   test("Flagging a square with question mark it is flagged with question mark") {
@@ -89,4 +89,19 @@ class FlagSquareTest extends AnyFunSuite  {
     assert(result == EndedGame)
   }
 
+  test("Invalid row position is reported") {
+    boardRepository.save(Board(1, 2))
+
+    val result = flagSquare(2, 1).left.get
+
+    assert(result.isInstanceOf[InvalidCoordinates])
+  }
+
+  test("Invalid col position is reported") {
+    boardRepository.save(Board(1, 2))
+
+    val result = flagSquare(1, 3).left.get
+
+    assert(result.isInstanceOf[InvalidCoordinates])
+  }
 }

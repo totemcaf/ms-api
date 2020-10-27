@@ -28,8 +28,15 @@ package object model {
     override def toString = s"$name($msg)"
   }
 
+  case class GameAlreadyStarted(reason: String) extends GameError {
+    val msg = s"Cannot $reason on already started game"
+  }
 
   case class InvalidAction(msg: String) extends GameError
+  case class InvalidCoordinates(position: Position) extends GameError {
+    val msg = s"Invalid $position"
+  }
+
   case class CannotFlagUncoveredSquare(position: Position) extends GameError {
     val msg = s"Cannot flag uncovered square at $position"
   }

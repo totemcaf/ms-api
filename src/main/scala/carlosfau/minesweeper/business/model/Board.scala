@@ -23,9 +23,45 @@ class Board private (
   def withMineAt(row: SquareCoordinate, col: SquareCoordinate): Board =
     copy(mines = mines + (row at col))
 
+  // Public for testing
+  def isMineAt(r: SquareCoordinate, c: SquareCoordinate): Boolean = mines contains (r at c)
+
+  /**
+   * Returns a new board identical to this, but wit the given number of mines added
+   *
+   * @return a new board
+   */
+  def addMines(numberOfMinesToAdd: Quantity): Result[Board] =
+    if (cells.nonEmpty) Left(GameAlreadyStarted("add mines"))
+    else copy(mines = (1 to numberOfMinesToAdd).foldLeft(mines){ (ms, _) => ms + generateRandomUnusedPosition(ms) })
+      .asResult
 
   def flagAt(row: SquareCoordinate, col: SquareCoordinate, flagType: Flagged): Result[Board] =
-    flagAt(row at col, flagType)
+    validatePosition(row at col)
+      .flatMap2(flagAt(_, flagType))
+
+  def uncover(row: SquareCoordinate, col: SquareCoordinate): Result[Board] =
+    validatePosition(row at col)
+      .flatMap2(uncover)
+
+  def isEnded: Boolean = state != Playing
+
+  /**
+   * Returns the cell at coordinates if coordinates are in range, or None if outside board size
+   */
+  def square(row: SquareCoordinate, col: SquareCoordinate): Option[SquareView] =
+    if (row <= rows && col <= cols) Some(unsafeSquare(row, col))
+    else None
+
+  /**
+   * Returns all the cells in the board
+   * @return a sequence of cells
+   */
+  def squares: Seq[SquareView] = map(unsafeSquare)
+
+  private def validatePosition(position: Position) =
+    if (position.row <= rows && position.col <= cols) position.asResult
+    else Left(InvalidCoordinates(position))
 
   private def flagAt(position: Position, flagType: Flagged): Result[Board] =
     if (isEnded) Left(EndedGame)
@@ -42,11 +78,9 @@ class Board private (
   private def copy(state: State = state, cells: Map[Position, SquareView] = cells, mines: Set[Board.Position] = mines) =
     new Board(rows, cols, state, mines, cells)
 
-  def uncover(row: SquareCoordinate, col: SquareCoordinate): Result[Board] = uncover(row at col)
-
   private def range(value: SquareCoordinate, limit: Size) = Range(if (value == One) One else value - 1, Math.min(value + 1, limit)).inclusive
 
-  def adjacentMineCount(position: Position): Quantity = Quantity.unsafeFrom((for {
+  private def adjacentMineCount(position: Position): Quantity = Quantity.unsafeFrom((for {
     row <- range(position.row, rows)
     col <- range(position.col, cols)
     if mines contains Position(row, col)
@@ -61,8 +95,6 @@ class Board private (
 
     copy(state = Lost, cells = cells ++ uncoveredMines ++ incorrectMines + explodedMine)
   }
-
-  def isEnded: Boolean = state != Playing
 
   private def uncover(position: Position): Result[Board] = {
     if (isEnded) Left(EndedGame)
@@ -85,26 +117,11 @@ class Board private (
 
   private def cellsWithoutMines = rows * cols - mines.size
 
-  def isMineAt(r: SquareCoordinate, c: SquareCoordinate): Boolean = mines contains (r at c)
-
-  /**
-   * Returns the cell at coordinates if coordinates are in range, or None if outside board size
-   */
-  def square(row: SquareCoordinate, col: SquareCoordinate): Option[SquareView] =
-    if (row <= rows && col <= cols) Some(unsafeSquare(row, col))
-    else None
-
   /**
    * Internal access to a cell, coordinates are not checked
    */
   private def unsafeSquare(row: SquareCoordinate, col: SquareCoordinate): SquareView =
     cells.getOrElse(row at col, Covered)
-
-  /**
-   * Returns all the cells in the board
-   * @return a sequence of cells
-   */
-  def squares: Seq[SquareView] = map(unsafeSquare)
 
   @tailrec
   private def generateRandomUnusedPosition(mines: Set[Position]): Position = {
@@ -114,15 +131,6 @@ class Board private (
 
     if (mines contains position) generateRandomUnusedPosition(mines) else position
   }
-
-  /**
-   * Returns a new board identical to this, but wit the given number of mines added
-   *
-   * @return a new board
-   */
-  def addMines(numberOfMinesToAdd: Quantity): Board = copy(
-    mines = (1 to numberOfMinesToAdd).foldLeft(mines){ (ms, _) => ms + generateRandomUnusedPosition(ms) }
-  )
 
   /**
    * Visit all squares and apply the provided function to each position

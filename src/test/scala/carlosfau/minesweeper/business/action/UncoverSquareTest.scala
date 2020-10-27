@@ -1,7 +1,7 @@
 package carlosfau.minesweeper.business.action
 
 import carlosfau.minesweeper.business.model.Board.{Covered, ExplodedMine, IncorrectMine, Lost, Mine, Position, Uncovered, Won}
-import carlosfau.minesweeper.business.model.{Board, CannotUncoverUncoveredSquare, EndedGame}
+import carlosfau.minesweeper.business.model.{Board, CannotUncoverUncoveredSquare, EndedGame, InvalidCoordinates}
 import carlosfau.minesweeper.infrastructure.repository.InMemoryBoardRepository
 import eu.timepit.refined.auto._
 import org.scalatest.funsuite.AnyFunSuite
@@ -114,5 +114,22 @@ class UncoverSquareTest extends AnyFunSuite {
     val result = uncoverSquare(1, 1).left.get
 
     assert(result == EndedGame)
+  }
+
+
+  test("Invalid row position is reported") {
+    boardRepository.save(Board(1, 2))
+
+    val result = uncoverSquare(2, 1).left.get
+
+    assert(result.isInstanceOf[InvalidCoordinates])
+  }
+
+  test("Invalid col position is reported") {
+    boardRepository.save(Board(1, 2))
+
+    val result = uncoverSquare(1, 3).left.get
+
+    assert(result.isInstanceOf[InvalidCoordinates])
   }
 }
