@@ -1,15 +1,17 @@
 package carlosfau.minesweeper.infrastructure.repository
 
+import java.util.concurrent.ConcurrentHashMap
+
 import carlosfau.minesweeper.business.action.BoardRepository
 import carlosfau.minesweeper.business.model.{Board, Result}
 
+/**
+ * Simple In Memory implementation of a Board Repository
+ */
 class InMemoryBoardRepository extends BoardRepository {
-  var optBoard: Option[Board] = None
+  var boards = new ConcurrentHashMap[Board.ID, Board]
 
-  override def save(board: Board): Result[Board] = {
-    this.optBoard = Some(board)
-    findBoard()
-  }
+  override def save(board: Board): Result[Board] = boards.compute(board.id, { (_, _) => board }).asResult
 
-  override def findBoard(): Result[Board] = Right(optBoard)
+  override def findBoard(id: Board.ID): Result[Board] = Right(Option(boards.get(id)))
 }

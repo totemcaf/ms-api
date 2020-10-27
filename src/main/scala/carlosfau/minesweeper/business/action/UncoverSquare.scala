@@ -11,9 +11,9 @@ import carlosfau.minesweeper.business.model.Board.SquareCoordinate
  * @param boardRepository the repository to store games
  */
 class UncoverSquare(boardRepository: BoardRepository) {
-  def apply(row: SquareCoordinate, col: SquareCoordinate): Result[Board] =
+  def apply(id: Board.ID, row: SquareCoordinate, col: SquareCoordinate): Result[Board] =
     boardRepository
-      .findBoard()
+      .findBoard(id)
       .flatMap2(_.uncover(row, col))
       .flatMap2(boardRepository.save)
 }

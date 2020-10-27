@@ -4,9 +4,9 @@ import carlosfau.minesweeper.business.model.{Board, Result}
 import carlosfau.minesweeper.business.model.Board.{Flagged, RedFlagged, SquareCoordinate}
 
 class FlagSquare(boardRepository: BoardRepository) {
-  def apply(row: SquareCoordinate, col: SquareCoordinate, flagType: Flagged = RedFlagged): Result[Board] =
+  def apply(id: Board.ID, row: SquareCoordinate, col: SquareCoordinate, flagType: Flagged = RedFlagged): Result[Board] =
     boardRepository
-      .findBoard()
+      .findBoard(id)
       .flatMap2(_.flagAt(row, col, flagType))
       .flatMap2(boardRepository.save)
 }

@@ -8,6 +8,7 @@ package object delivery {
                        mines: Int)
 
   case class BoardView(
+                        id: String,
                         rows: Int,
                         cols: Int,
                         state: String,
@@ -29,6 +30,7 @@ package object delivery {
 
     val toView: BoardView =
       BoardView(
+        board.id,
         board.rows.value,
         board.cols.value,
         board.state.toString,

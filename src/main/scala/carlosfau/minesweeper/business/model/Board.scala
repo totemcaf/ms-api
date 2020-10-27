@@ -13,6 +13,7 @@ import scala.util.Random
  * @param cols number of columns in the board
  */
 class Board private (
+             val id: ID,
              val rows: Size, val cols: Size,
              val state: State,
              mines: Set[Board.Position],
@@ -76,7 +77,7 @@ class Board private (
   }
 
   private def copy(state: State = state, cells: Map[Position, SquareView] = cells, mines: Set[Board.Position] = mines) =
-    new Board(rows, cols, state, mines, cells)
+    new Board(id, rows, cols, state, mines, cells)
 
   private def range(value: SquareCoordinate, limit: Size) = Range(if (value == One) One else value - 1, Math.min(value + 1, limit)).inclusive
 
@@ -145,10 +146,14 @@ class Board private (
 }
 
 object Board {
-  def apply(rows: Size, cols: Size) = new Board(rows, cols, Playing, Set.empty, Map.empty)
+  private def newId = java.util.UUID.randomUUID.toString
+
+  def apply(rows: Size, cols: Size) = new Board(newId, rows, cols, Playing, Set.empty, Map.empty)
 
   import eu.timepit.refined.api.Refined
   import eu.timepit.refined.numeric._
+
+  type ID = String
 
   type SquareCoordinate = Int Refined Positive
   type Size = Int Refined Positive

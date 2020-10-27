@@ -41,8 +41,8 @@ class CreateBoardTest extends AnyFunSuite {
   }
 
   test("Cannot add mines to an already started game") {
-    createBoard(rows, cols)
-    val board = FlagSquare(boardRepository)(1, 1).get
+    val id = createBoard(rows, cols).get.id
+    val board = FlagSquare(boardRepository)(id, 1, 1).get
 
     val result = board.addMines(1).left.get
 

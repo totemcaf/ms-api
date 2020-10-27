@@ -4,5 +4,5 @@ import carlosfau.minesweeper.business.model.{Board, Result}
 
 trait BoardRepository {
   def save(board: Board): Result[Board]
-  def findBoard(): Result[Board]
+  def findBoard(id: Board.ID): Result[Board]
 }

@@ -24,7 +24,7 @@ See [API description](src/main/resources/swagger.yaml) for the list of endpoints
 * [x] Let show board status (Hidden, Marked cell, Empty cell, 1 to 8 adjacent mines, Exploded mine, Shown mine)
 * [X] Add rest of endpoints
 * [X] Add parameter validations
-* [ ] Allow to handle several games
+* [X] Allow to handle several games
 * [ ] Allow to handle several users/accounts
 * [ ] Allow to persiste in external service
 * [ ] When adding mines to board, omit the square requested (first square revealed protection)
@@ -35,6 +35,14 @@ Code will be follow a [Clean Architecture](https://engineering.etermax.com/clean
 the intention is to let the business logic be independent on technical decisions.
    
 A simple HTTP server was chosen mainly for its simplicity in this toy application.
+
+## Concurrency control
+
+To simplify the development of the project, no provision for concurrency was provided.
+It is possible for two simultaneous requests to operate on the same game and one of the requests will override
+the other request result. For a real production application this should be solved.
+
+Note: If time is available this will be solved by adding Optimistic Concurrency control strategy to the repository.
 
 # To run test
 

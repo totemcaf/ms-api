@@ -13,10 +13,10 @@ import org.http4s.server.blaze.BlazeBuilder
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class Server(
-            boardFinder: () => MResult[Board],
+            boardFinder: Board.ID => MResult[Board],
             createBoard: (Size, Size, Quantity) =>  MResult[Board],
-            flagSquare: (SquareCoordinate, SquareCoordinate, Flagged) => MResult[Board],
-            uncoverSquare: (SquareCoordinate, SquareCoordinate) => MResult[Board]
+            flagSquare: (Board.ID, SquareCoordinate, SquareCoordinate, Flagged) => MResult[Board],
+            uncoverSquare: (Board.ID, SquareCoordinate, SquareCoordinate) => MResult[Board]
             )
   extends StreamApp[IO] with Http4sDsl[IO] {
 
@@ -35,7 +35,7 @@ class Server(
   private val service = HttpService[IO] {
     case request@POST -> root / id / Uncovers => handleUncoverSquare(request, id)
     case request@POST -> root / id / Flags => handleFlagSquare(request, id)
-    case request@GET -> root / id => handleGetGame
+    case request@GET -> root / id => handleGetGame(id)
     case request@POST -> root => handleCreateGame(request)
 
   }
@@ -50,14 +50,14 @@ class Server(
     temp.flatMap(_.fold(BadRequest(_), mapActionResult))
   }
 
-  private def handleGetGame = mapActionResult(boardFinder())
+  private def handleGetGame(id: String) = mapActionResult(boardFinder(id))
 
   def handleFlagSquare(request: Request[IO], id: String): IO[Response[IO]] = {
     val temp = request.as[FlagCell].map(c => for {
           row <- SquareCoordinate.from(c.row)
           col <- SquareCoordinate.from(c.col)
           flag <- Flagged.from(c.flag)
-      } yield flagSquare(row, col, flag)
+      } yield flagSquare(id, row, col, flag)
     )
 
     temp.flatMap(_.fold(BadRequest(_), mapActionResult)
@@ -68,7 +68,7 @@ class Server(
     val temp = request.as[UncoverCell].map(c => for {
         row <- SquareCoordinate.from(c.row)
         col <- SquareCoordinate.from(c.col)
-      } yield uncoverSquare(row, col)
+      } yield uncoverSquare(id, row, col)
     )
 
     temp.flatMap(_.fold(BadRequest(_), mapActionResult)

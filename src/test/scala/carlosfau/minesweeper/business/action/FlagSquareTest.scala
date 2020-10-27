@@ -26,9 +26,9 @@ class FlagSquareTest extends AnyFunSuite  {
 
 
   test("Flagging a square it is flagged and it is the only flagged") {
-    boardRepository.save(Board(rows, cols))
+    val id = boardRepository.save(Board(rows, cols)).get.id
 
-    val board = flagSquare(1, 1).get
+    val board = flagSquare(id, 1, 1).get
 
     assert(board.square(1, 1).get == RedFlagged)
 
@@ -36,11 +36,11 @@ class FlagSquareTest extends AnyFunSuite  {
   }
 
   test("Flagging a flagged board (different square) it is flagged and rest keeps as original") {
-    boardRepository.save(Board(rows, cols))
+    val id = boardRepository.save(Board(rows, cols)).get.id
 
-    flagSquare(2, 2)
+    flagSquare(id, 2, 2)
 
-    val board = flagSquare(3, 1).get
+    val board = flagSquare(id, 3, 1).get
 
     assert(board.square(2, 2).get == RedFlagged)
     assert(board.square(3, 1).get == RedFlagged)
@@ -49,11 +49,11 @@ class FlagSquareTest extends AnyFunSuite  {
   }
 
   test("Flagging a flagged square, unflagged it") {
-    boardRepository.save(Board(rows, cols))
+    val id = boardRepository.save(Board(rows, cols)).get.id
 
-    flagSquare(2, 1)
+    flagSquare(id, 2, 1)
 
-    val board = flagSquare(2, 1).get
+    val board = flagSquare(id, 2, 1).get
 
     assert(board.square(2, 1).get == Covered)
 
@@ -61,17 +61,17 @@ class FlagSquareTest extends AnyFunSuite  {
   }
 
   test("Flagging an uncovered square generates an error") {
-    boardRepository.save(Board(rows, cols).uncover(3, 2).get)
+    val id = boardRepository.save(Board(rows, cols).uncover(3, 2).get).get.id
 
-    val result = flagSquare(3, 2).swap.getOrElse(fail("Expecting exception"))
+    val result = flagSquare(id, 3, 2).swap.getOrElse(fail("Expecting exception"))
 
     assert(result == CannotFlagUncoveredSquare(Position(3, 2)))
   }
 
   test("Flagging a square with question mark it is flagged with question mark") {
-    boardRepository.save(Board(rows, cols))
+    val id = boardRepository.save(Board(rows, cols)).get.id
 
-    val board = flagSquare(1, 1, flagType = QuestionMarked).get
+    val board = flagSquare(id, 1, 1, flagType = QuestionMarked).get
 
     assert(board.square(1, 1).get == QuestionMarked)
 
@@ -79,28 +79,28 @@ class FlagSquareTest extends AnyFunSuite  {
   }
 
   test("Flag ended game reports an error") {
-    boardRepository.save(Board(1, 2).withMineAt(1, 1))
-    val board = uncoverSquare(1, 2).get
+    val id = boardRepository.save(Board(1, 2).withMineAt(1, 1)).get.id
+    val board = uncoverSquare(id, 1, 2).get
 
     assert(board.isEnded)
 
-    val result = flagSquare(1, 2).left.get
+    val result = flagSquare(id, 1, 2).left.get
 
     assert(result == EndedGame)
   }
 
   test("Invalid row position is reported") {
-    boardRepository.save(Board(1, 2))
+    val id = boardRepository.save(Board(1, 2)).get.id
 
-    val result = flagSquare(2, 1).left.get
+    val result = flagSquare(id, 2, 1).left.get
 
     assert(result.isInstanceOf[InvalidCoordinates])
   }
 
   test("Invalid col position is reported") {
-    boardRepository.save(Board(1, 2))
+    val id = boardRepository.save(Board(1, 2)).get.id
 
-    val result = flagSquare(1, 3).left.get
+    val result = flagSquare(id, 1, 3).left.get
 
     assert(result.isInstanceOf[InvalidCoordinates])
   }
