@@ -10,6 +10,7 @@ package object delivery {
   case class BoardView(
                         rows: Int,
                         cols: Int,
+                        state: String,
                         cells: List[List[String]]
                       )
 
@@ -30,6 +31,7 @@ package object delivery {
       BoardView(
         board.rows.value,
         board.cols.value,
+        board.state.toString,
         board.squares.map(_.toString).grouped(board.cols.value).map(_.toList).toList
       )
   }

@@ -1,0 +1,207 @@
+swagger: "2.0"
+info:
+  description: "This is the API for the Mineseeper game"
+  version: "1.0.0"
+  title: "Mineseeper by charle"
+host: "totem.to.be.defined.com"
+basePath: "/v1"
+tags:
+  - name: "game"
+    description: "An activity to find all the hidden mines"
+    externalDocs:
+      description: "Find out more"
+      url: "https://en.wikipedia.org/wiki/Minesweeper_(video_game)"
+schemes:
+  - "https"
+  - "http"
+paths:
+  /game:
+    post:
+      tags:
+        - "game"
+      summary: "Start a new game"
+      description: ""
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "The dimensions of the board"
+          required: true
+          schema:
+            $ref: "#/definitions/BoardConfiguration"
+      responses:
+        "201":
+          description: "New game created"
+          schema:
+            $ref: "#/definitions/GameView"
+        "400":
+          description: "Invalid input"
+
+  /game/{gameId}:
+    get:
+      tags:
+        - "game"
+      summary: "Find game by ID"
+      description: "Returns a single game"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "gameId"
+          in: "path"
+          description: "ID of game to return"
+          required: true
+          type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/GameView"
+        "404":
+          description: "No game with such id"
+
+  /game/{gameId}/flags:
+    post:
+      tags:
+        - "game"
+      summary: "Put or remove a flag in the cell"
+      description: ""
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "gameId"
+          in: "path"
+          description: "ID of game that needs to be updated"
+          required: true
+          type: "string"
+        - in: "body"
+          name: "body"
+          description: "The position to flag"
+          required: true
+          schema:
+            $ref: "#/definitions/FlagCell"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/GameView"
+        "400":
+          description: "Invalid action"
+        "404":
+          description: "No game with such id"
+
+  /game/{gameId}/uncovers:
+    post:
+      tags:
+        - "game"
+      summary: "Uncover a cell"
+      description: ""
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "gameId"
+          in: "path"
+          description: "ID of game that needs to be updated"
+          required: true
+          type: "string"
+        - in: "body"
+          name: "body"
+          description: "The position to uncover"
+          required: true
+          schema:
+            $ref: "#/definitions/UncoverCell"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/GameView"
+        "400":
+          description: "Invalid action"
+        "404":
+          description: "No game with such id"
+
+definitions:
+  BoardConfiguration:
+    type: "object"
+    properties:
+      rows:
+        type: "integer"
+        format: "int64"
+        description: "Number of rows in the board (>=1)"
+      cols:
+        type: "integer"
+        format: "int64"
+        description: "Number of colums in the board (>=1)"
+      mines:
+        type: "integer"
+        format: "int32"
+        description: "Number of mines in the board (>=0)"
+  FlagCell:
+    type: "object"
+    properties:
+      row:
+        type: "integer"
+        format: "int64"
+      col:
+        type: "integer"
+        format: "int64"
+      flag:
+        type: "string"
+        enum:
+          - "RedFlagged"
+          - "QuestionMarked"
+        description: "Type of flag to set (or unset)"
+  UncoverCell:
+    type: "object"
+    properties:
+      row:
+        type: "integer"
+        format: "int64"
+      col:
+        type: "integer"
+        format: "int64"
+  GameView:
+    type: "object"
+    properties:
+      id:
+        type: "string"
+      rows:
+        type: "integer"
+        format: "int64"
+      cols:
+        type: "integer"
+        format: "int64"
+
+      cells:
+        type: "array"
+        description: "The observable state of each square in the board"
+        items:
+          type: "array"
+          items:
+            type: "string"
+            enum:
+              - "Covered"
+              - "RedFlagged"
+              - "QuestionMarked"
+              - "Mine"
+              - "ExplodedMine"
+              - "IncorrectMine"
+              - "Uncovered(0)"
+              - "Uncovered(1)"
+              - "Uncovered(2)"
+              - "Uncovered(3)"
+              - "Uncovered(4)"
+              - "Uncovered(5)"
+              - "Uncovered(6)"
+              - "Uncovered(7)"
+              - "Uncovered(8)"
+
+externalDocs:
+  description: "Find out more about Minesweeper"
+  url: "https://en.wikipedia.org/wiki/Minesweeper_(video_game)"

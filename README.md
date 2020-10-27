@@ -7,7 +7,11 @@ The project will be developed in Scala due to the position is for a Scala softwa
 
 The game fill follow rules described for [Minesweeper](https://en.wikipedia.org/wiki/Minesweeper_(video_game))
 
-Features:
+# Public API
+
+See [API description](src/main/resources/swagger.yaml) for the list of endpoints that are available. 
+
+# Road map
 
 * [x] Create empty board of size n * m
 * [x] Add mines to board

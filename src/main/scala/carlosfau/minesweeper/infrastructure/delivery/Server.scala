@@ -25,11 +25,11 @@ class Server(
   private implicit val uncoverDecoder: EntityDecoder[IO, UncoverCell] = jsonOf[IO, UncoverCell]
   private implicit val boardViewEncoder: EntityEncoder[IO, BoardView] = jsonEncoderOf[IO, BoardView]
 
+  val Version = "v1"
   val Game = "game"
   val Flags = "flags"
   val Uncovers = "uncovers"
-
-  private val root = Root / Game
+  private val root = Root / Version / Game
 
 
   private val service = HttpService[IO] {
@@ -65,7 +65,7 @@ class Server(
   }
 
   def handleUncoverSquare(request: Request[IO], id: String): IO[Response[IO]] = {
-    val temp = request.as[FlagCell].map(c => for {
+    val temp = request.as[UncoverCell].map(c => for {
         row <- SquareCoordinate.from(c.row)
         col <- SquareCoordinate.from(c.col)
       } yield uncoverSquare(row, col)
