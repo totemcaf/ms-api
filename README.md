@@ -53,10 +53,17 @@ correctly design the solution.
 
     sbt test
 
-#To run the application locally
+# To run the application locally
 
-    sbt runMain 
-   
+    sbt run
+# To deploy application
+
+In `deploy folder` a helper script let you deploy the app to an instance machine that should have docker installed.
+
+Before running the script set the environment variable `PEM` to the full path of the PEM file to access the instance.
+
+The instance should have the SSH port open for the IP your are working (see the instance Security Group). 
+
 # References
 
 * https://medium.com/@Methrat0n/wtf-is-refined-5008eb233194

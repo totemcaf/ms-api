@@ -1,0 +1,5 @@
+.bsp/
+.idea
+README.md
+secrets.txt
+target/

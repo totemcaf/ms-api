@@ -7,23 +7,10 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.0" % "test"
 
 libraryDependencies ++= Seq(
   "eu.timepit" %% "refined"                 % "0.9.17"
-
-/*
-  ,
-  "eu.timepit" %% "refined-cats"            % "0.9.17", // optional
-  "eu.timepit" %% "refined-eval"            % "0.9.17", // optional, JVM-only
-  "eu.timepit" %% "refined-jsonpath"        % "0.9.17", // optional, JVM-only
-  "eu.timepit" %% "refined-pureconfig"      % "0.9.17", // optional, JVM-only
-  "eu.timepit" %% "refined-scalacheck"      % "0.9.17", // optional
-  "eu.timepit" %% "refined-scalaz"          % "0.9.17", // optional
-  "eu.timepit" %% "refined-scodec"          % "0.9.17", // optional
-  "eu.timepit" %% "refined-scopt"           % "0.9.17", // optional
-  "eu.timepit" %% "refined-shapeless"       % "0.9.17"  // optional
- */
 )
 
-val CirceVersion = "0.9.3"
-val Http4sVersion = "0.18.11"
+val CirceVersion = "0.13.0"
+val Http4sVersion = "0.21.8"
 
 libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-api" % "1.7.25",
@@ -42,3 +29,4 @@ libraryDependencies ++= Seq(
 
 
 mainClass in (Compile, run) := Some("carlosfau.minesweeper.Main")
+mainClass in assembly := Some("carlosfau.minesweeper.Main")
