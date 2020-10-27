@@ -1,7 +1,7 @@
 package carlosfau.minesweeper.business.action
 
 import carlosfau.minesweeper.business.model.Board.{Covered, Flagged, Position, QuestionMarked, RedFlagged}
-import carlosfau.minesweeper.business.model.{Board, CannotFlagUncoveredSquare}
+import carlosfau.minesweeper.business.model.{Board, CannotFlagUncoveredSquare, EndedGame}
 import carlosfau.minesweeper.infrastructure.repository.InMemoryBoardRepository
 import eu.timepit.refined.auto._
 import org.scalatest.funsuite.AnyFunSuite
@@ -13,6 +13,7 @@ class FlagSquareTest extends AnyFunSuite  {
   val boardRepository = new InMemoryBoardRepository()
 
   private val flagSquare = FlagSquare(boardRepository)
+  private val uncoverSquare = UncoverSquare(boardRepository)
 
   implicit class BoardOps(board: Board) {
     def flagCount: Int = {
@@ -76,4 +77,16 @@ class FlagSquareTest extends AnyFunSuite  {
 
     assert( 1 == board.flagCount )
   }
+
+  test("Flag ended game reports an error") {
+    boardRepository.save(Board(1, 2).withMineAt(1, 1))
+    val board = uncoverSquare(1, 2).get
+
+    assert(board.isEnded)
+
+    val result = flagSquare(1, 2).left.get
+
+    assert(result == EndedGame)
+  }
+
 }

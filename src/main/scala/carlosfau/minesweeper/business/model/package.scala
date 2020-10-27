@@ -24,8 +24,10 @@ package object model {
   sealed abstract class GameError() {
     val msg: String
 
-    override def toString = s"${getClass.getSimpleName}($msg)"
+    private def name = getClass.getSimpleName.stripSuffix("$")
+    override def toString = s"$name($msg)"
   }
+
 
   case class InvalidAction(msg: String) extends GameError
   case class CannotFlagUncoveredSquare(position: Position) extends GameError {
@@ -40,6 +42,9 @@ package object model {
     val msg = "Game over, you uncover a mine"
   }
 
+  object EndedGame extends GameError {
+    val msg = "The game is already ended, cannot play"
+  }
   implicit class IntToPosition(row: SquareCoordinate) {
     def at(col: SquareCoordinate): Position = Position(row, col)
   }

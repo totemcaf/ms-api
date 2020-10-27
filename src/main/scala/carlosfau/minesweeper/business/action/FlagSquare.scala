@@ -8,7 +8,7 @@ class FlagSquare(boardRepository: BoardRepository) {
     boardRepository
       .findBoard()
       .flatMap2(_.flagAt(row, col, flagType))
-      .map2{ boardRepository.save }
+      .flatMap2(boardRepository.save)
 }
 
 object FlagSquare {

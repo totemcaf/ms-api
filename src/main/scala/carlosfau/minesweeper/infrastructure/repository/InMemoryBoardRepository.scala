@@ -6,9 +6,9 @@ import carlosfau.minesweeper.business.model.{Board, Result}
 class InMemoryBoardRepository extends BoardRepository {
   var optBoard: Option[Board] = None
 
-  override def save(board: Board): Board = {
+  override def save(board: Board): Result[Board] = {
     this.optBoard = Some(board)
-    board
+    findBoard()
   }
 
   override def findBoard(): Result[Board] = Right(optBoard)

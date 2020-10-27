@@ -15,5 +15,5 @@ object Main extends App {
     createBoard.apply,
     flagSquare.apply,
     uncoverSquare.apply
-  ).main(Array.empty) // TODO Pass parameters
+  ).main(args)
 }

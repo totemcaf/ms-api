@@ -13,6 +13,17 @@ package object delivery {
                         cells: List[List[String]]
                       )
 
+  case class FlagCell(
+                       row: Int,
+                       col: Int,
+                       flag: String
+                     )
+
+  case class UncoverCell(
+                       row: Int,
+                       col: Int
+                     )
+
   implicit class ModelToView(board: Board) {
 
     val toView: BoardView =

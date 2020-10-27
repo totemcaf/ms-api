@@ -18,8 +18,8 @@ Features:
 * [x] Let flag with Question mark or Red flag
 * [x] Expose first endpoints
 * [x] Let show board status (Hidden, Marked cell, Empty cell, 1 to 8 adjacent mines, Exploded mine, Shown mine)
-* [ ] Add rest of endpoints
-* [ ] Add parameter validations
+* [X] Add rest of endpoints
+* [X] Add parameter validations
 * [ ] Allow to handle several games
 * [ ] Allow to handle several users/accounts
 * [ ] Allow to persiste in external service

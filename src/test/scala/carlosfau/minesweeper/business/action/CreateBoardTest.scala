@@ -28,26 +28,26 @@ class CreateBoardTest extends AnyFunSuite {
   private val createBoard = CreateBoard(new InMemoryBoardRepository)
 
   test("New board has required rows and column squares") {
-    val board = createBoard(rows, cols)
+    val board = createBoard(rows, cols).get
 
     assert(board.rows == rows)
     assert(board.cols == cols)
   }
 
   test("New board squares are all hidden") {
-    val board = createBoard(rows, cols)
+    val board = createBoard(rows, cols).get
 
     assert(board.squares.forall(_ == Covered))
   }
 
   test("A new board has 0 mines") {
-    val board = createBoard(rows, cols)
+    val board = createBoard(rows, cols).get
 
     assert( board.map( (r, c) => board.isMineAt(r,c)).forall(!_))
   }
 
   test("Adding mines to board, then it have the quantity added") {
-    val board = createBoard(rows, cols).addMines(3)
+    val board = createBoard(rows, cols).get.addMines(3)
 
     val function: (SquareCoordinate, SquareCoordinate) => Boolean = (r, c) => board.isMineAt(r, c)
     val numberOfMines: Int = board.map(function).count(x => x)

@@ -15,7 +15,7 @@ class UncoverSquare(boardRepository: BoardRepository) {
     boardRepository
       .findBoard()
       .flatMap2(_.uncover(row, col))
-      .map2(boardRepository.save)
+      .flatMap2(boardRepository.save)
 }
 
 object UncoverSquare {

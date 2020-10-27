@@ -1,6 +1,6 @@
 package carlosfau.minesweeper.business.model
 
-import carlosfau.minesweeper.business.model.Board._
+import carlosfau.minesweeper.business.model.Board.{Flagged, _}
 import eu.timepit.refined.api.RefinedTypeOps
 import eu.timepit.refined.auto._
 
@@ -14,6 +14,7 @@ import scala.util.Random
  */
 class Board private (
              val rows: Size, val cols: Size,
+             val state: State,
              mines: Set[Board.Position],
              cells: Map[Board.Position, SquareView]
            ) {
@@ -26,20 +27,20 @@ class Board private (
   def flagAt(row: SquareCoordinate, col: SquareCoordinate, flagType: Flagged): Result[Board] =
     flagAt(row at col, flagType)
 
-  private def flagAt(position: Position, flagType: Flagged): Result[Board] = {
-    cells.get(position) match {
+  private def flagAt(position: Position, flagType: Flagged): Result[Board] =
+    if (isEnded) Left(EndedGame)
+    else cells.get(position) match {
       case Some(Uncovered(_)) => CannotFlagUncoveredSquare(position)
       case Some(`flagType`) => copy(cells = cells - position).asResult
       case _ => uncheckedFlatAt(position, flagType)
     }
-  }
 
   private def uncheckedFlatAt(position: Position, flagType: Flagged) = {
     copy(cells = cells + (position -> flagType)).asResult
   }
 
-  private def copy(cells: Map[Position, SquareView] = cells, mines: Set[Board.Position] = mines) =
-    new Board(rows, cols, mines, cells)
+  private def copy(state: State = state, cells: Map[Position, SquareView] = cells, mines: Set[Board.Position] = mines) =
+    new Board(rows, cols, state, mines, cells)
 
   def uncover(row: SquareCoordinate, col: SquareCoordinate): Result[Board] = uncover(row at col)
 
@@ -51,17 +52,38 @@ class Board private (
     if mines contains Position(row, col)
   } yield ()).size)
 
-  private def uncover(position: Position): Result[Board] =
-    if (mines contains position) BlewMineUp
+  private def asEndedGameAt(position: Position) = {
+    val uncoveredMines = mines.map(_ -> Mine)
+    val explodedMine = position -> ExplodedMine
+    val incorrectMines = cells
+      .filter { case (p, state) => state.isFlag && !mines.contains(p) }
+      .mapValues(_ => IncorrectMine)
+
+    copy(state = Lost, cells = cells ++ uncoveredMines ++ incorrectMines + explodedMine)
+  }
+
+  def isEnded: Boolean = state != Playing
+
+  private def uncover(position: Position): Result[Board] = {
+    if (isEnded) Left(EndedGame)
+    else if (mines contains position) asEndedGameAt(position).asResult
     else {
       cells.get(position) match {
         case Some(Uncovered(_)) => CannotUncoverUncoveredSquare(position)
         case _ => uncheckedUncover(position)
       }
     }
+  }
 
-  private def uncheckedUncover(position: Position) =
-    copy(cells = cells + (position -> Uncovered(adjacentMineCount(position)))).asResult
+  private def uncheckedUncover(position: Position) = {
+    val newCells = cells + (position -> Uncovered(adjacentMineCount(position)))
+
+    val uncoveredCells = newCells.count{case (_, Uncovered(_)) => true case _ => false}
+
+    copy(cells = newCells, state = if (uncoveredCells == cellsWithoutMines) Won else state).asResult
+  }
+
+  private def cellsWithoutMines = rows * cols - mines.size
 
   def isMineAt(r: SquareCoordinate, c: SquareCoordinate): Boolean = mines contains (r at c)
 
@@ -115,7 +137,7 @@ class Board private (
 }
 
 object Board {
-  def apply(rows: Size, cols: Size) = new Board(rows, cols, Set.empty, Map.empty)
+  def apply(rows: Size, cols: Size) = new Board(rows, cols, Playing, Set.empty, Map.empty)
 
   import eu.timepit.refined.api.Refined
   import eu.timepit.refined.numeric._
@@ -142,18 +164,41 @@ object Board {
   }
 
   sealed abstract class SquareView {
+    def isFlag: Boolean = false
+
     val name: String = getClass.getSimpleName.stripSuffix("$")
     override def toString: String = name
   }
 
   object Covered extends SquareView
-  abstract class Flagged extends SquareView
+  abstract class Flagged extends SquareView {
+    override def isFlag: Boolean = true
+  }
+
+  object Flagged {
+    def from(s: String): Either[String, Flagged] = s match {
+      case "RedFlagged" => Right(RedFlagged)
+      case "QuestionMarked" => Right(QuestionMarked)
+      case _ => Left(s"Invalid flag: $s")
+    }
+  }
 
   object RedFlagged extends Flagged
   object QuestionMarked extends Flagged
+  object Mine extends SquareView
+  object ExplodedMine extends SquareView
+  object IncorrectMine extends SquareView
 
   case class Uncovered(adjacentMines: Quantity) extends SquareView {
-
     override def toString: String = s"$name($adjacentMines)"
   }
+
+  abstract class State {
+    val name: String = getClass.getSimpleName.stripSuffix("$")
+    override def toString: String = name
+  }
+
+  object Playing extends State
+  object Won extends State
+  object Lost extends State
 }
