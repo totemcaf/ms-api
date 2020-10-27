@@ -38,11 +38,16 @@ A simple HTTP server was chosen mainly for its simplicity in this toy applicatio
 
 ## Concurrency control
 
-To simplify the development of the project, no provision for concurrency was provided.
+To simplify the development of the project, no provision for concurrency control was provided.
 It is possible for two simultaneous requests to operate on the same game and one of the requests will override
 the other request result. For a real production application this should be solved.
 
 Note: If time is available this will be solved by adding Optimistic Concurrency control strategy to the repository.
+
+## Database housekeeping
+
+To simplify this exercise no provision for cleaning the database for old games. More requirementes are needed to
+correctly design the solution.
 
 # To run test
 
