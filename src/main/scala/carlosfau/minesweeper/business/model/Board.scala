@@ -69,11 +69,12 @@ class Board private (
     else cells.get(position) match {
       case Some(Uncovered(_)) => CannotFlagUncoveredSquare(position)
       case Some(`flagType`) => copy(cells = cells - position).asResult
-      case _ => uncheckedFlatAt(position, flagType)
+      case _ => uncheckedFlagAt(position, flagType)
     }
 
-  private def uncheckedFlatAt(position: Position, flagType: Flagged) = {
-    copy(cells = cells + (position -> flagType)).asResult
+  private def uncheckedFlagAt(position: Position, flagType: Flagged) = {
+    val newCells = cells + (position -> flagType)
+    copy(cells = newCells, state = if (shouldBeEnded(newCells)) Board.Won else state).asResult
   }
 
   private def copy(state: State = state, cells: Map[Position, SquareView] = cells, mines: Set[Board.Position] = mines) =
@@ -111,12 +112,21 @@ class Board private (
   private def uncheckedUncover(position: Position) = {
     val newCells = cells + (position -> Uncovered(adjacentMineCount(position)))
 
-    val uncoveredCells = newCells.count{case (_, Uncovered(_)) => true case _ => false}
-
-    copy(cells = newCells, state = if (uncoveredCells == cellsWithoutMines) Won else state).asResult
+    copy(cells = newCells, state = if (shouldBeEnded(newCells)) Board.Won else state).asResult
   }
 
-  private def cellsWithoutMines = rows * cols - mines.size
+
+
+  /**
+   * A game ends when the user uncover all cells without mines and flag all cells with mines
+   */
+  private def shouldBeEnded(cells: Map[Position, SquareView]) =
+    cells.size == rows * cols &&
+      cells.forall {
+        case (position, Uncovered(_)) => ! mines.contains(position) // Redundant check, if mine is uncovered it blew out
+        case (position, RedFlagged) => mines.contains(position)
+        case _ => false
+      }
 
   /**
    * Internal access to a cell, coordinates are not checked

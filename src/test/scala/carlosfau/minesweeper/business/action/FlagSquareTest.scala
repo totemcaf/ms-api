@@ -80,7 +80,7 @@ class FlagSquareTest extends AnyFunSuite  {
 
   test("Flag ended game reports an error") {
     val id = boardRepository.save(Board(1, 2).withMineAt(1, 1)).get.id
-    val board = uncoverSquare(id, 1, 2).get
+    val board = uncoverSquare(id, 1, 1).get
 
     assert(board.isEnded)
 
@@ -103,5 +103,16 @@ class FlagSquareTest extends AnyFunSuite  {
     val result = flagSquare(id, 1, 3).left.get
 
     assert(result.isInstanceOf[InvalidCoordinates])
+  }
+
+  test("Flagging the last mine should make you won") {
+    val id = boardRepository.save(Board(1, 2).withMineAt(1, 1)).get.id
+    val board = uncoverSquare(id, 1, 2).get
+
+    assert(!board.isEnded)
+
+    val board2 = flagSquare(id, 1, 1).get
+
+    assert(board2.isEnded)
   }
 }
