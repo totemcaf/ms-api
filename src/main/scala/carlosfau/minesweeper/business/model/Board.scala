@@ -20,6 +20,13 @@ class Board private (
              cells: Map[Board.Position, SquareView]
            ) {
 
+  /**
+   * Inform how many mines should be find by user. This does not reflect if the
+   * guesses are correct, but only the number of flags set.
+   * If user set more flags than mines, the number can be negative.
+   */
+  def minesToFind: Int = mines.size - cells.values.count(_ == RedFlagged)
+
   // Public for testing
   def withMineAt(row: SquareCoordinate, col: SquareCoordinate): Board =
     copy(mines = mines + (row at col))

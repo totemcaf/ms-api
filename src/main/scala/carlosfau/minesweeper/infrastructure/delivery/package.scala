@@ -12,7 +12,8 @@ package object delivery {
                         rows: Int,
                         cols: Int,
                         state: String,
-                        cells: List[List[String]]
+                        cells: List[List[String]],
+                        minesToFind: Int
                       )
 
   case class FlagCell(
@@ -34,7 +35,8 @@ package object delivery {
         board.rows.value,
         board.cols.value,
         board.state.toString,
-        board.squares.map(_.toString).grouped(board.cols.value).map(_.toList).toList
+        board.squares.map(_.toString).grouped(board.cols.value).map(_.toList).toList,
+        board.minesToFind
       )
   }
 
