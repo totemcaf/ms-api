@@ -61,7 +61,7 @@ class FlagSquareTest extends AnyFunSuite  {
   }
 
   test("Flagging an uncovered square generates an error") {
-    val id = boardRepository.save(Board(rows, cols).uncover(3, 2).get).get.id
+    val id = boardRepository.save(Board(rows, cols).withMineAt(1,1).uncover(3, 2).get).get.id
 
     val result = flagSquare(id, 3, 2).swap.getOrElse(fail("Expecting exception"))
 

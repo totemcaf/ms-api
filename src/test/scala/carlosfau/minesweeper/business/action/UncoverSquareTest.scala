@@ -93,7 +93,7 @@ class UncoverSquareTest extends AnyFunSuite {
   }
 
   test("Uncovering an uncovered square generates an error") {
-    val id = boardRepository.save(Board(rows, cols).uncover(2, 3).get).get.id
+    val id = boardRepository.save(Board(rows, cols).withMineAt(1, 1).uncover(2, 3).get).get.id
 
     val result = uncoverSquare(id,2, 3).swap.getOrElse(fail("Expecting exception"))
 

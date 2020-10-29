@@ -27,6 +27,8 @@ class Board private (
   // Public for testing
   def isMineAt(r: SquareCoordinate, c: SquareCoordinate): Boolean = mines contains (r at c)
 
+  def isCovered(position: Board.Position): Boolean = ! cells.contains(position)
+
   /**
    * Returns a new board identical to this, but wit the given number of mines added
    *
@@ -104,10 +106,24 @@ class Board private (
     else {
       cells.get(position) match {
         case Some(Uncovered(_)) => CannotUncoverUncoveredSquare(position)
-        case _ => uncheckedUncover(position)
+        case _ => uncheckedUncover(position).flatMap2(_.uncoverNeighbors(position))
       }
     }
   }
+
+  /**
+   * If this position is uncover with no mines as neighbors, uncover all uncovered neighbors
+   */
+  def uncoverNeighbors(position: Position): Result[Board] =
+    if (!cells.get(position).contains(SafeUncovered)) this.asResult
+    else
+      (for {
+        row <- range(position.row, rows)
+        col <- range(position.col, cols)
+        p = Position(row, col)
+      } yield p).foldLeft(this.asResult)((r, p) =>
+        r.flatMap2(b => if (b.isCovered(p)) b.uncover(p) else b.asResult)
+      )
 
   private def uncheckedUncover(position: Position) = {
     val newCells = cells + (position -> Uncovered(adjacentMineCount(position)))
@@ -181,6 +197,7 @@ object Board {
   object Size extends RefinedTypeOps[Size, Int]
   object SquareCoordinate extends RefinedTypeOps[SquareCoordinate, Int]
   object Quantity extends RefinedTypeOps[Quantity, Int]
+  val Zero: Quantity = 0
 
   implicit class Range2SquareCoordinates(range: Seq[Int]) {
     def asSquareCoordinates: Seq[SquareCoordinate] = range.map(SquareCoordinate.unsafeFrom)
@@ -215,6 +232,8 @@ object Board {
   case class Uncovered(adjacentMines: Quantity) extends SquareView {
     override def toString: String = s"$name($adjacentMines)"
   }
+
+  val SafeUncovered: Uncovered = Uncovered(Zero)
 
   abstract class State {
     val name: String = getClass.getSimpleName.stripSuffix("$")
