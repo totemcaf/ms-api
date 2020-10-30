@@ -18,20 +18,28 @@ See [API description](src/main/resources/swagger.yaml) for the list of endpoints
 * [x] Let flag square
 * [x] Let unflag square
 * [x] Let uncover square 
-* [x] Explode if try to show square with a mine
+* [x] Explode (and end game) if try to show square with a mine
 * [x] Let flag with Question mark or Red flag
 * [x] Expose first endpoints
 * [x] Let show board status (Hidden, Marked cell, Empty cell, 1 to 8 adjacent mines, Exploded mine, Shown mine)
 * [X] Add rest of endpoints
 * [X] Add parameter validations
 * [X] Allow to handle several games
+* [X] Uncover neighbors of uncovered cell without adjacent mines 
+
+## Pending, not done
+
+Due to time restrictions the following features were not done.
+
 * [ ] Allow to handle several users/accounts
 * [ ] Allow to persiste in external service
 * [ ] When adding mines to board, omit the square requested (first square revealed protection)
+* [ ] Configure CORS correctly
+* [ ] Handle time to finish
 
 # Design decisions
 
-Code will be follow a [Clean Architecture](https://engineering.etermax.com/clean-microservice-architecture-in-practice-63051aeb016b),
+Code followed a [Clean Architecture](https://engineering.etermax.com/clean-microservice-architecture-in-practice-63051aeb016b),
 the intention is to let the business logic be independent on technical decisions.
    
 A simple HTTP server was chosen mainly for its simplicity in this toy application.
