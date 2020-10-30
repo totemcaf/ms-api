@@ -89,7 +89,7 @@ class Server(
   }
 
   private val corsConfig = CORSConfig(
-    anyOrigin = false,
+    anyOrigin = true,
     allowedOrigins = {
       case "http://localhost:3000" => true
       case "http://ec2-3-87-195-146.compute-1.amazonaws.com" => true

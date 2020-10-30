@@ -56,14 +56,24 @@ correctly design the solution.
 # To run the application locally
 
     sbt run
+    
 # To deploy application
 
-In `deploy folder` a helper script let you deploy the app to an instance machine that should have docker installed.
+First you need to build the application, use:
 
+    sbt assembly
+
+This will generate a fat jar in the target folder (inside the scala version folder).
+
+In `deploy` folder a helper script let you deploy the app to an instance machine that should have docker installed.
+
+    bash deploy.sh
+    
 Before running the script set the environment variable `PEM` to the full path of the PEM file to access the instance.
 
 The instance should have the SSH port open for the IP your are working (see the instance Security Group). 
 
 # References
 
+* https://en.wikipedia.org/wiki/Minesweeper_(video_game)
 * https://medium.com/@Methrat0n/wtf-is-refined-5008eb233194
