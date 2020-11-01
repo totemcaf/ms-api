@@ -14,6 +14,7 @@ object Main extends IOApp {
 
     new Server(
       boardRepository.findBoard,
+      boardRepository.listBoards,
       createBoard.apply,
       flagSquare.apply,
       uncoverSquare.apply

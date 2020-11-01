@@ -15,7 +15,7 @@ schemes:
   - "https"
   - "http"
 paths:
-  /game:
+  /games:
     post:
       tags:
         - "game"
@@ -39,8 +39,22 @@ paths:
             $ref: "#/definitions/GameView"
         "400":
           description: "Invalid input"
+    get:
+      tags:
+        - "game"
+      summary: "List existent games by ID"
+      description: "Returns the list of games"
+      produces:
+        - "application/json"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/GameViewList"
+        "404":
+          description: "No game with such id"
 
-  /game/{gameId}:
+  /games/{gameId}:
     get:
       tags:
         - "game"
@@ -62,7 +76,7 @@ paths:
         "404":
           description: "No game with such id"
 
-  /game/{gameId}/flags:
+  /games/{gameId}/flags:
     post:
       tags:
         - "game"
@@ -94,7 +108,7 @@ paths:
         "404":
           description: "No game with such id"
 
-  /game/{gameId}/uncovers:
+  /games/{gameId}/uncovers:
     post:
       tags:
         - "game"
@@ -166,6 +180,10 @@ definitions:
       col:
         type: "integer"
         format: "int64"
+  GameViewList:
+    type: "array"
+    items:
+      $ref: "#/definitions/GameView"
   GameView:
     type: "object"
     properties:

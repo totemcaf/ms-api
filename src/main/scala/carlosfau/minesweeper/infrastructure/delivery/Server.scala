@@ -1,7 +1,7 @@
 package carlosfau.minesweeper.infrastructure.delivery
 
 import carlosfau.minesweeper.business.model.Board.{Flagged, Quantity, Size, SquareCoordinate}
-import carlosfau.minesweeper.business.model.{Board, Result => MResult}
+import carlosfau.minesweeper.business.model.{Board, GameError, Result => MResult}
 import cats.effect.{IO, _}
 import io.circe.generic.auto._
 import org.http4s.circe._
@@ -16,6 +16,7 @@ import scala.concurrent.duration.DurationInt
 
 class Server(
             boardFinder: Board.ID => MResult[Board],
+            boardLister: () => Either[GameError, List[Board]],
             createBoard: (Size, Size, Quantity) =>  MResult[Board],
             flagSquare: (Board.ID, SquareCoordinate, SquareCoordinate, Flagged) => MResult[Board],
             uncoverSquare: (Board.ID, SquareCoordinate, SquareCoordinate) => MResult[Board]
@@ -29,6 +30,7 @@ class Server(
   private implicit val flagDecoder: EntityDecoder[IO, FlagCell] = jsonOf[IO, FlagCell]
   private implicit val uncoverDecoder: EntityDecoder[IO, UncoverCell] = jsonOf[IO, UncoverCell]
   private implicit val boardViewEncoder: EntityEncoder[IO, BoardView] = jsonEncoderOf[IO, BoardView]
+  private implicit val boardViewsEncoder: EntityEncoder[IO, List[BoardView]] = jsonEncoderOf[IO, List[BoardView]]
 
   val Version = "v1"
   val Game = "games"
@@ -40,6 +42,7 @@ class Server(
   private val service =  HttpRoutes.of[IO] {
     case GET -> Root / "health" => handleHealth
     case GET -> `root` / id => handleGetGame(id)
+    case GET -> `root` => handleListGames()
     case request@POST -> `root` / id / Uncovers => handleUncoverSquare(request, id)
     case request@POST -> `root` / id / Flags => handleFlagSquare(request, id)
     case request@POST -> `root` => handleCreateGame(request)
@@ -58,6 +61,7 @@ class Server(
   }
 
   private def handleGetGame(id: String) = mapActionResult(boardFinder(id))
+  private def handleListGames() = mapActionResults(boardLister())
 
   def handleFlagSquare(request: Request[IO], id: String): IO[Response[IO]] = {
     val temp = request.as[FlagCell].map(c => for {
@@ -86,6 +90,11 @@ class Server(
     case Left(error) => InternalServerError(error.msg)
     case Right(None) => NotFound()
     case Right(Some(board)) => Ok(board.toView)
+  }
+
+  private def mapActionResults(result: Either[GameError, List[Board]]) = result match {
+    case Left(error) => InternalServerError(error.msg)
+    case Right(boards) => Ok(boards.map(_.toView))
   }
 
   private val corsConfig = CORSConfig(
