@@ -1,7 +1,7 @@
 package carlosfau.minesweeper.infrastructure.delivery
 
 import carlosfau.minesweeper.business.model.Board.{Flagged, Quantity, Size, SquareCoordinate}
-import carlosfau.minesweeper.business.model.{Board, GameError, Result => MResult}
+import carlosfau.minesweeper.business.model.{AccountId, Board, GameError, Result => MResult}
 import cats.effect.{IO, _}
 import io.circe.generic.auto._
 import org.http4s.circe._
@@ -15,11 +15,11 @@ import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration.DurationInt
 
 class Server(
-            boardFinder: Board.ID => MResult[Board],
-            boardLister: () => Either[GameError, List[Board]],
-            createBoard: (Size, Size, Quantity) =>  MResult[Board],
-            flagSquare: (Board.ID, SquareCoordinate, SquareCoordinate, Flagged) => MResult[Board],
-            uncoverSquare: (Board.ID, SquareCoordinate, SquareCoordinate) => MResult[Board]
+            boardFinder: AccountId => Board.ID => MResult[Board],
+            boardLister: AccountId => () => Either[GameError, List[Board]],
+            createBoard: AccountId => (Size, Size, Quantity) =>  MResult[Board],
+            flagSquare: AccountId => (Board.ID, SquareCoordinate, SquareCoordinate, Flagged) => MResult[Board],
+            uncoverSquare: AccountId => (Board.ID, SquareCoordinate, SquareCoordinate) => MResult[Board]
             )
   extends Http4sDsl[IO] {
 
@@ -32,54 +32,68 @@ class Server(
   private implicit val boardViewEncoder: EntityEncoder[IO, BoardView] = jsonEncoderOf[IO, BoardView]
   private implicit val boardViewsEncoder: EntityEncoder[IO, List[BoardView]] = jsonEncoderOf[IO, List[BoardView]]
 
-  val Version = "v1"
-  val Game = "games"
+  val Version = "v2"
+  val Account = "accounts"
+  val Games = "games"
   val Flags = "flags"
   val Uncovers = "uncovers"
 
-  private val root = Root / Version / Game
+  private val root = Root / Version / Account
 
   private val service =  HttpRoutes.of[IO] {
     case GET -> Root / "health" => handleHealth
-    case GET -> `root` / id => handleGetGame(id)
-    case GET -> `root` => handleListGames()
-    case request@POST -> `root` / id / Uncovers => handleUncoverSquare(request, id)
-    case request@POST -> `root` / id / Flags => handleFlagSquare(request, id)
-    case request@POST -> `root` => handleCreateGame(request)
+
+    case GET -> `root` / accountId / `Games` / id => handleGetGame(accountId, id)
+    case GET -> `root` / accountId / `Games` => handleListGames(accountId)
+    case request@POST -> `root` / accountId / `Games` / id / Uncovers => handleUncoverSquare(request, accountId, id)
+    case request@POST -> `root` / accountId / `Games` / id / Flags => handleFlagSquare(request, accountId, id)
+    case request@POST -> `root` / accountId / `Games` => handleCreateGame(request, accountId)
   }.orNotFound
 
   private def handleHealth: IO[Response[IO]] = Ok("Minesweeper is Ok")
 
-  private def handleCreateGame(request: Request[IO]) = {
+  private def handleCreateGame(request: Request[IO], accountIdStr: String) = {
     val temp = request.as[CreateBody].map(c => for {
+        accountId <- AccountId.from(accountIdStr)
         rows <- Size.from(c.rows)
         cols <- Size.from(c.cols)
         mines <- Quantity.from(c.mines)
-      } yield createBoard(rows, cols, mines)
+      } yield createBoard(accountId)(rows, cols, mines)
     )
     temp.flatMap(_.fold(BadRequest(_), mapActionResult))
   }
 
-  private def handleGetGame(id: String) = mapActionResult(boardFinder(id))
-  private def handleListGames() = mapActionResults(boardLister())
+  private def handleGetGame(accountIdStr: String, id: String) =
+    (for {
+      accountId <- AccountId.from(accountIdStr)
+    } yield boardFinder(accountId)(id))
+    .fold(BadRequest(_), mapActionResult)
 
-  def handleFlagSquare(request: Request[IO], id: String): IO[Response[IO]] = {
+  private def handleListGames(accountIdStr: String) =
+    (for {
+      accountId <- AccountId.from(accountIdStr)
+    } yield boardLister(accountId)())
+    .fold(BadRequest(_), mapActionResults)
+
+  def handleFlagSquare(request: Request[IO], accountIdStr: String, id: String): IO[Response[IO]] = {
     val temp = request.as[FlagCell].map(c => for {
+          accountId <- AccountId.from(accountIdStr)
           row <- SquareCoordinate.from(c.row)
           col <- SquareCoordinate.from(c.col)
           flag <- Flagged.from(c.flag)
-      } yield flagSquare(id, row, col, flag)
+      } yield flagSquare(accountId)(id, row, col, flag)
     )
 
     temp.flatMap(_.fold(BadRequest(_), mapActionResult)
     )
   }
 
-  def handleUncoverSquare(request: Request[IO], id: String): IO[Response[IO]] = {
+  def handleUncoverSquare(request: Request[IO], accountIdStr: String, id: String): IO[Response[IO]] = {
     val temp = request.as[UncoverCell].map(c => for {
+        accountId <- AccountId.from(accountIdStr)
         row <- SquareCoordinate.from(c.row)
         col <- SquareCoordinate.from(c.col)
-      } yield uncoverSquare(id, row, col)
+      } yield uncoverSquare(accountId)(id, row, col)
     )
 
     temp.flatMap(_.fold(BadRequest(_), mapActionResult)

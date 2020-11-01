@@ -26,12 +26,12 @@ See [API description](src/main/resources/swagger.yaml) for the list of endpoints
 * [X] Add parameter validations
 * [X] Allow to handle several games
 * [X] Uncover neighbors of uncovered cell without adjacent mines 
+* [X] Allow to handle several users/accounts
 
 ## Pending, not done
 
 Due to time restrictions the following features were not done.
 
-* [ ] Allow to handle several users/accounts
 * [ ] Allow to persiste in external service
 * [ ] When adding mines to board, omit the square requested (first square revealed protection)
 * [ ] Configure CORS correctly
@@ -75,6 +75,7 @@ This will generate a fat jar in the target folder (inside the scala version fold
 
 In `deploy` folder a helper script let you deploy the app to an instance machine that should have docker installed.
 
+    cd deploy
     bash deploy.sh
     
 Before running the script set the environment variable `PEM` to the full path of the PEM file to access the instance.

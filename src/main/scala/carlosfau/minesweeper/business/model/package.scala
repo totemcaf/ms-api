@@ -1,8 +1,17 @@
 package carlosfau.minesweeper.business
 
 import carlosfau.minesweeper.business.model.Board.{Position, SquareCoordinate}
+import eu.timepit.refined.W
+import eu.timepit.refined.api.{Refined, RefinedTypeOps}
+import eu.timepit.refined.string.MatchesRegex
+
+import scala.language.implicitConversions
 
 package object model {
+  type AccountId = String Refined MatchesRegex[W.`"[a-zA-Z0-9]{1,16}"`.T]
+  object AccountId extends RefinedTypeOps[AccountId, String]
+
+
   type Result[T] = Either[GameError, Option[T]]
 
   implicit class ResultOps[T](result: Result[T]) {
