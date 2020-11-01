@@ -1,4 +1,4 @@
-# mw-api
+# mw-api Minesweeper
 
 This project is the author proposal as response for the https://github.com/deviget/minesweeper-API 
 code challenge.
@@ -7,9 +7,25 @@ The project will be developed in Scala due to the position is for a Scala softwa
 
 The game fill follow rules described for [Minesweeper](https://en.wikipedia.org/wiki/Minesweeper_(video_game))
 
+The project has a companion [Simple UI](https://github.com/totemcaf/ms-client) that contains a simple API client
+(written in Javascript) and a very simple UI.
+
+The UI is deployed in AWS and can be found at http://ec2-3-87-195-146.compute-1.amazonaws.com:5000,
+also this API can be riched at http://ec2-3-87-195-146.compute-1.amazonaws.com:8080.
+
 # Public API
 
 See [API description](src/main/resources/swagger.yaml) for the list of endpoints that are available. 
+
+# Design decisions
+
+Code followed a [Clean Architecture](https://engineering.etermax.com/clean-microservice-architecture-in-practice-63051aeb016b),
+the intention is to let the business logic be independent on technical decisions.
+   
+A simple HTTP server was chosen mainly for its simplicity in this toy application.
+
+Some field have refined types, that helps in domain value checks, nad provides better description. 
+It is developed with the help of the [Refined](https://github.com/fthomas/refined) library.
 
 # Road map
 
@@ -36,13 +52,6 @@ Due to time restrictions the following features were not done.
 * [ ] When adding mines to board, omit the square requested (first square revealed protection)
 * [ ] Configure CORS correctly
 * [ ] Handle time to finish
-
-# Design decisions
-
-Code followed a [Clean Architecture](https://engineering.etermax.com/clean-microservice-architecture-in-practice-63051aeb016b),
-the intention is to let the business logic be independent on technical decisions.
-   
-A simple HTTP server was chosen mainly for its simplicity in this toy application.
 
 ## Concurrency control
 
