@@ -137,7 +137,7 @@ definitions:
       cols:
         type: "integer"
         format: "int64"
-        description: "Number of colums in the board (>=1)"
+        description: "Number of columns in the board (>=1)"
       mines:
         type: "integer"
         format: "int32"
@@ -175,6 +175,9 @@ definitions:
         type: "integer"
         format: "int64"
       cols:
+        type: "integer"
+        format: "int64"
+      minesToFind:
         type: "integer"
         format: "int64"
 
